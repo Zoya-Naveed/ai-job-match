@@ -1,61 +1,57 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
-from typing import List, Optional
+from fastapi import FastAPI, Request, UploadFile, File
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+import os
+
+from .resume_parser import extract_skills
+from .matcher import match_jobs
+
+# Get correct base path
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 app = FastAPI()
 
-# Model for a task used when reading (includes id)
-class Task(BaseModel):
-    id: int
-    title: str
-    completed: bool = False
-    tag: str = "normal"
 
-# Model for a task when creating/updating (id not required from client)
-class TaskCreate(BaseModel):
-    title: str
-    completed: Optional[bool] = False
 
-tasks: List[Task] = []
-task_id_counter = 1
 
-def tag_task(title: str) -> str:
-    keywords_urgent = ["urgent", "immediately", "asap", "important"]
-    if any(word in title.lower() for word in keywords_urgent):
-        return "urgent"
-    return "normal"
+# Mount static and templates with full path
+app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
-@app.get("/tasks", response_model=List[Task])
-def get_tasks():
-    return tasks
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
 
-@app.post("/tasks", response_model=Task)
-def create_task(task: TaskCreate):
-    global task_id_counter
-    new_task = Task(
-        id=task_id_counter,
-        title=task.title,
-        completed=task.completed or False,
-        tag=tag_task(task.title)
-    )
-    tasks.append(new_task)
-    task_id_counter += 1
-    return new_task
+    return templates.TemplateResponse("index.html", {"request": request, "results": None})
 
-@app.delete("/tasks/{task_id}")
-def delete_task(task_id: int):
-    for i, t in enumerate(tasks):
-        if t.id == task_id:
-            tasks.pop(i)
-            return {"message": "Task deleted"}
-    raise HTTPException(status_code=404, detail="Task not found")
+@app.post("/match_jobs", response_class=HTMLResponse)
+async def match_jobs_from_resume(request: Request, resume_file: UploadFile = File(...)):
+    contents = await resume_file.read()
+    text = contents.decode("utf-8")
+    print("Uploaded resume text:", text[:200])  # print first 200 chars
 
-@app.put("/tasks/{task_id}", response_model=Task)
-def update_task(task_id: int, updated_task: TaskCreate):
-    for i, t in enumerate(tasks):
-        if t.id == task_id:
-            tasks[i].title = updated_task.title
-            tasks[i].completed = updated_task.completed or False
-            tasks[i].tag = tag_task(updated_task.title)
-            return tasks[i]
-    raise HTTPException(status_code=404, detail="Task not found")
+    skills = extract_skills(text)
+    print("Extracted skills:", skills)
+
+    if not skills:
+        return templates.TemplateResponse("index.html", {
+            "request": request,
+            "results": [],
+            "error": "No skills detected in your resume."
+        })
+
+    job_matches = match_jobs(skills)
+    print("Jobs matched:", job_matches)
+
+    if not job_matches:
+        return templates.TemplateResponse("index.html", {
+            "request": request,
+            "results": [],
+            "error": "No matching jobs found for your skills."
+        })
+
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "results": job_matches,
+        "error": None
+    })

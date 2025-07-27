@@ -1,23 +1,22 @@
 job_listings = [
     {
-        "title": "Backend Developer",
-        "company": "TechNova",
-        "location": "Remote",
-        "skills": ["Python", "FastAPI", "Docker", "CI/CD", "AWS"],
-        "link": "https://example.com/jobs/backend-developer"
+        "title": "Data Analyst",
+        "company": "DataCorp",
+        "skills": ["python", "sql", "data analysis", "pandas", "azure"]
     },
     {
         "title": "Frontend Developer",
-        "company": "Designly",
-        "location": "London",
-        "skills": ["JavaScript", "React", "CSS", "HTML", "Git"],
-        "link": "https://example.com/jobs/frontend-developer"
+        "company": "WebWorld",
+        "skills": ["html", "css", "javascript", "react"]
     },
     {
-        "title": "DevOps Engineer",
-        "company": "CloudNine",
-        "location": "Berlin",
-        "skills": ["Docker", "Kubernetes", "AWS", "CI/CD", "Python"],
-        "link": "https://example.com/jobs/devops-engineer"
+        "title": "Backend Developer",
+        "company": "CodeBase",
+        "skills": ["python", "django", "sql", "git", "fastapi", "rest apis", "docker"]
+    },
+    {
+        "title": "ML Engineer",
+        "company": "AI Innovations",
+        "skills": ["python", "machine learning", "data analysis", "pandas"]
     }
 ]

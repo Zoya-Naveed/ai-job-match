@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Job Matcher</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #74ebd5, #9face6);
+            padding: 2rem;
+            text-align: center;
+        }
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            width: 500px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+        }
+        .results {
+            text-align: left;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 AI Job Matcher</h1>
+        <form method="post" action="/match_jobs" enctype="multipart/form-data">
+            <input type="file" name="resume_file" accept=".txt" required><br><br>
+            <button type="submit">Match Jobs</button>
+        </form>
+
+   {% if results is not none %}
+  {% if results|length > 0 %}
+    <div class="results">
+      <h2>Matched Jobs</h2>
+      <ul>
+        {% for job in results %}
+          <li>
+            <a href="{{ job.redirect_url }}" target="_blank" rel="noopener noreferrer">
+              <strong>{{ job.title }}</strong>
+            </a>
+            — {{ job.company }} (Match score: {{ job.match_score }})
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% else %}
+    <p style="color: gray;">No matching jobs found for your skills.</p>
+  {% endif %}
+{% endif %}
+
+
+
+
+    </div>
+</body>
+</html>
